@@ -1,4 +1,0 @@
-- [x] If we break with the first cards we get, then no updates are made
-- [x] the actions in the last state will never be updated  
-- [x] falacy that end. always == true, when t = 3 which does not make the stake 16
-- [ ] Right now, the actionvalues in expec SARSA is always updated after the action probabilities (which we do not always use)
