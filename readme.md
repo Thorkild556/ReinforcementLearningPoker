@@ -1,4 +1,5 @@
-## Setup
+# If command or bat file does not work:
+## Setup 
 ```bash
 python3.12 -m venv .venv
 source .venv/bin/activate
