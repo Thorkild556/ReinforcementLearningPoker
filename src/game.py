@@ -2,7 +2,7 @@ from src.strategy import Strategy
 import numpy as np
 from abc import ABC, abstractmethod
 
-
+# making an overall class for what a player should do
 class Player(ABC):
     def __init__(self):
         self.hand = []
@@ -19,7 +19,7 @@ class Player(ABC):
     def take_action(self):
         pass
 
-
+# making an RLPlayer taking in the template of the player defined above
 class RLPlayer(Player):
     def __init__(self, strategy: Strategy):
         self.hand = []
@@ -35,7 +35,7 @@ class RLPlayer(Player):
     def take_action(self, board):
         return self.strategy.chose_action(board, self.hand)
 
-
+# this is for when a human wants to play
 class HumanPlayer(Player):
     def __init__(self):
         self.hand = []
@@ -57,29 +57,31 @@ class HumanPlayer(Player):
             else:
                 print("Invalid input. Please enter 'c' for call or 'f' for fold.")
 
-
+# This is how i define a game, this class is primarily for simulation
 class Game():
     def __init__(self, players: list[Player]):
-        self.deck = []
+        self.deck = [] # adding 4 of each card to the deck in the beginning of a game
         for j in range(1, 11): # of values 1-10 
             self.deck.extend([j, j, j, j]) #clubs, diamonds, hearts, spades
         self.board = []
         self.players = players
-        for player in self.players:
+        for player in self.players: #giving players 2 cards 
             player.new_hand(cards = self.draw_cards(2))
         self.stake = 1
         self.t = 0
-
+        # making the game keep track of the rewards for each player
         self.rewards = [[],[]] #keep track of rewards for each player.
         self.state_idxs = [[],[]]
         self.state_list_idxs = [[],[]]
         self.actions = [[],[]]
-        for i in range(2):
+        for i in range(2): #updating the state list to follow the state trajectory
             state_idx = self.players[i].strategy._get_state_idx(self.players[i].hand, self.board)
             self.state_list_idxs[i].append(0)
             self.state_idxs[i].append(state_idx)
 
-    def simulate_one_round(self):
+    # simulates one round of the game, first taking actions,
+    #  then handing out rewards and updating each players value function using the n-step backup algorithm
+    def simulate_one_round(self): 
         #each player takes an action
         for player_idx in range(2):
             action = self.players[player_idx].take_action(self.board)
@@ -150,7 +152,7 @@ class Game():
                                                t_to_update, n = n)
 
         elif self.t - self.players[0].strategy.n >= 0:
-            for player in range(2):
+            for player in range(2): # for each player update their action value functions
                 t_to_update = self.t - self.players[0].strategy.n
                 strategy = self.players[0].strategy
                 strategy.make_value_update(self.rewards[player],
@@ -159,13 +161,14 @@ class Game():
                                            self.actions[player],
                                            t=t_to_update, 
                                            n=strategy.n)
-
+    # runs 4 simulated rounds for this game
     def simulate_game(self):
         for i in range(4): # 4 rounds
             end_by_action = self.simulate_one_round()
             if end_by_action == True:
                 return
     
+    #logic to draw a card
     def draw_cards(self, n):
         indices = np.random.choice(len(self.deck), size=n, replace=False)
         indices = sorted(indices, reverse=True)  # ensure correct deletion order
@@ -181,6 +184,7 @@ class Game():
     def get_unique(self, hand):
         return np.unique(hand, return_counts = True) # returns (unique_values, counts of these)
 
+    #logic to decide who wins, if both players continues to the end
     def get_winner(self, hands):
         unique_hands = [self.get_unique(hand) for hand in hands]
         scores = [[],[]]
@@ -201,16 +205,3 @@ class Game():
                 return 1, 0
             else:
                 return 2, 2 # they have the same hand
-
-
-if __name__ == "__main__":
-
-    strategy = Strategy(2, 1, 0.5, 0.2)
-
-    for i in range(100):
-        player1 = Player(strategy)
-        player2 = Player(strategy)
-        game = Game([player1, player2])
-        game.simulate_game()
-        if i%10000 == 0:
-            print(i)

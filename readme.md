@@ -4,7 +4,7 @@
 
 ### Automatic
 ```
-.\setup.bat
+.\play_poker.bat
 ```
 
 ### Manual
@@ -19,7 +19,7 @@ python main.py
 
 ### Automatic
 ```bash
-chmod +x setup.sh
+chmod +x play_poker.sh
 ./setup.sh
 ```
 
